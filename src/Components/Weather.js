@@ -2,8 +2,12 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { selectDisplay } from "../redux/slices/displayCountrySlice";
+import { useDispatch } from "react-redux";
+import { stopLoading, setLoading } from "../redux/slices/loadingSlice";
 
 const Weather = () => {
+    const dispatch = useDispatch()
+
     const display = useSelector(selectDisplay)
     const lat = display.capitalInfo.latlng[0]
     const lng = display.capitalInfo.latlng[1]
@@ -20,13 +24,19 @@ const Weather = () => {
                 'X-RapidAPI-Host': 'weatherapi-com.p.rapidapi.com'
             }
         }
-        axios.request(options)
-            .then(res => {
-                console.log(res.data)
-                setWeather(res.data)
-            })
-            .catch(err => console.log(err))
-    }, [lat, lng])
+
+        dispatch(setLoading())
+        setTimeout(() => {
+            axios.request(options)
+                .then(res => {
+                    console.log(res.data)
+                    setWeather(res.data)
+                    console.log('stopping the loading screen')
+                    dispatch(stopLoading())
+                })
+                .catch(err => console.log(err))
+        }, 1000)
+    }, [lat, lng, dispatch])
 
     return (
         <div>
@@ -51,8 +61,8 @@ const Weather = () => {
                     <tr>
                         <td>Wind Speed: </td>
                         <td>{weather?.current?.wind_mph}
-                        mph{' '} 
-                        {weather?.current?.wind_dir}</td>
+                            mph{' '}
+                            {weather?.current?.wind_dir}</td>
                     </tr>
                 </table>
             </tbody>
